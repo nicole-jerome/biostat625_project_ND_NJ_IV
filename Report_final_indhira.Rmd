@@ -62,7 +62,7 @@ All models were fit using generalized linear models with a binomial distribution
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 # code hidden, output shown
 
-table_interpretation <- readRDS( "Results_Smoking.rds")
+table_interpretation <- readRDS("Results_Smoking.rds")
 
 table_interpretation <- data.frame(
   Predictor = c(
@@ -178,9 +178,9 @@ column_spec(2, width = "50%")
 
 ```
 
-In the model adjusting for demographic and socioeconomic covariates, cigarette smoking status showed a strong graded association with mortality. Compared with never smokers, everyday smokers had more than double the odds of death (OR ≈ 2.19), some-day smokers had 78% higher odds (OR ≈ 1.78), and former smokers had 37% higher odds (OR ≈ 1.37), demonstrating a clear dose–response pattern(Table 2).
+In the model adjusting for demographic and socioeconomic covariates, cigarette smoking status showed a strong graded association with mortality. Compared with never smokers, everyday smokers had more than double the odds of death (OR ≈ 2.19), some-day smokers had 78% higher odds (OR ≈ 1.78), and former smokers had 37% higher odds (OR ≈ 1.37), demonstrating a clear dose–response pattern (Table 2).
 
-When age of smoking initaiation was incorporated into the model through age at smoking initiation,after adjustment, some-day smokers showed \~14% lower odds of mortality (OR ≈ 0.86) and former smokers showed \~39% lower odds (OR ≈ 0.61) relative to Everyday smokers , likely reflecting the influence of smoking duration. Age at smoking initiation was independently associated with mortality, with each year of later smoking initiation reducing mortality risk by \~2%(Table 3).
+When age of smoking initiation was incorporated into the model through age at smoking initiation,after adjustment, some-day smokers showed \~14% lower odds of mortality (OR ≈ 0.86) and former smokers showed \~39% lower odds (OR ≈ 0.61) relative to Everyday smokers , likely reflecting the influence of smoking duration. Age at smoking initiation was independently associated with mortality, with each year of later smoking initiation reducing mortality risk by \~2% (Table 3).
 
 Across both models, age, sex, income, race, and marital status remained strong independent predictors. Age consistently showed the largest effect, with each additional year associated with \~9% higher mortality. Females had substantially lower mortality risk (\~36–43% lower), while higher income and being married were protective. Race differences persisted in both models, with some categories exhibiting higher or lower mortality relative to the reference group.
 
