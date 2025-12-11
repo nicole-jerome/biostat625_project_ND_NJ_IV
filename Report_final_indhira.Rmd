@@ -1,9 +1,12 @@
 ---
+pdf_document: default
 title: "EDA and Regression analysis_Indhira"
-output:
-  html_document: default
-  pdf_document: default
 date: "2025-12-06"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+html_notebook: default
 ---
 
 # Methods
@@ -12,171 +15,60 @@ date: "2025-12-06"
 
 We analyzed 493,282 participants from the NLMS Tobacco Use Cohort using a big-data workflow centered on Apache Arrow to enable efficient, memory-safe processing of the large dataset. The raw CSV file was converted to Parquet and loaded as an Arrow Dataset, allowing fast, columnar I/O, lazy evaluation, and on-disk querying without importing the entire file into memory—an approach far more efficient than base R, which fully materializes data frames and incurs substantially higher memory and compute costs. We used Arrow and dplyr to subset variables, perform grouped operations, and collect only the necessary columns into R for recoding. Smokeless tobacco variables (CURRUSE, EVERUSE) were recoded into binary indicators based on digit patterns, and marital status was collapsed into two categories (married, not married/separated). Labeled factor variables were created for readability. Descriptive statistics were computed stratified by sex, with categorical variables summarized using counts and percentages and continuous variables using means and standard deviations. A formatted Table 1 was generated using kableExtra to present all variables with clear labels and hierarchical indentation.
 
+## Regression Analysis
+
+### Variable Selection
+
+Covariates were selected a priori based on established epidemiological evidence demonstrating their associations with both smoking behavior and mortality. Age is a strong determinant of baseline mortality risk (Arias & Xu, 2022), while sex differences in survival are well-documented (Kruger & Nesse, 2006). Race/ethnicity influences mortality through structural and socioeconomic inequities (Williams & Mohammed, 2009). Socioeconomic status, particularly income, is closely linked to life expectancy (Chetty et al., 2016). Health insurance status affects access to healthcare and subsequently mortality risk (Wilper et al., 2009). Marital status is included due to its protective association with lower mortality (Rendall et al., 2011). Smoking duration, measured by age at initiation, has also been shown to independently influence long-term mortality (USDHHS, 2014).
+
+### Logistic Regression
+
+We evaluated the association between cigarette smoking behavior and mortality using logistic regression models applied to the NLMS Tobacco Use dataset. Mortality (inddea) was modeled as a binary outcome. Two main exposures were examined: (1) smoking status (never, everyday, some-days, former) and (2) smoking status plus smoking duration, operationalized using age at smoking initiation (agesmk). Covariates selected a priori based on demographic and socioeconomic relevance included age, race, sex, health insurance status, income, and marital status.
+
+#### Model 1 : Smoking Status
+
+$$
+\text{logit}\big[P(\text{Death}_i = 1)\big] 
+= \beta_0 
++ \beta_1\,\text{Smokestat}_i
++ \beta_2\,\text{Age}_i
++ \beta_3\,\text{Race}_i
++ \beta_4\,\text{Sex}_i
++ \beta_5\,\text{Insurance}_i
++ \beta_6\,\text{Income}_i
++ \beta_7\,\text{MaritalStatus}_i 
+$$
+
+#### Model 2: Smoking Status+Snoking Duration
+
+$$
+\text{logit}\big[P(\text{Death}_i = 1)\big] 
+= \gamma_0
++ \gamma_1\,\text{Smokestat}_i
++ \gamma_2\,\text{AgeStartedSmoking}_i
++ \gamma_3\,\text{Age}_i
++ \gamma_4\,\text{Race}_i
++ \gamma_5\,\text{Sex}_i
++ \gamma_6\,\text{Insurance}_i
++ \gamma_7\,\text{Income}_i
++ \gamma_8\,\text{MaritalStatus}_i .
+$$
+
+All models were fit using generalized linear models with a binomial distribution and logit link in R. A univariate model estimated the crude association between smoking status and mortality, followed by multivariable models adjusting for confounders. Model performance was compared and selected using AIC and residual deviance. Odds ratios and 95% confidence intervals were computed by exponentiating model coefficients. Missing data were handled using complete-case analysis to ensure comparability across models.
+
+
+
 # Results
 
 ## Descriptive Analysis
 
 The analytic sample included 493,282 participants, with 230,967 males and 262,315 females. The sex-stratified descriptive statistics showed broadly similar age distributions between groups, while race, income, and health insurance patterns exhibited modest variation. Marital status differed by sex, with a higher proportion of males classified as married and females more frequently not married or separated. Tobacco-related behaviors demonstrated clear sex patterns: males reported higher rates of current and ever use of smokeless tobacco and were more likely to have smoked at least 100 cigarettes. The mean age of smoking initiation was slightly lower among males. Mortality proportions also varied slightly by sex. Overall, Table 1 summarizes these demographic, socioeconomic, and tobacco-use differences, providing a foundational characterization of the NLMS tobacco cohort prior to inferential analysis.
 
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-# code hidden, output shown
-final_table_indent <- readRDS("final_table_indent.rds")
-library(dplyr)
-library(kableExtra)
-final_table_indent %>%
-  arrange(Variable, Level) %>%
-  kable(
-    format = "html",
-    col.names = c("Variable", "Level", "Male", "Female"),
-    escape = FALSE
-  ) %>%
-  kable_styling(
-    bootstrap_options = c("striped", "hover", "condensed"),
-    full_width = FALSE,
-    position = "center"
-  ) %>%
-  collapse_rows(columns = 1, valign = "top") %>%
-  kableExtra::footnote(
-    general = "1 n (%); Mean (SD)",
-    general_title = "",
-    footnote_as_chunk = TRUE
-  )
+![](files/descript_table.png)
 
+## Logistic Regression
 
-```
-
-
-
-# Logistic Regression
-
-# Methods
-
-We evaluated the association between cigarette smoking behavior and mortality using logistic regression models applied to the NLMS Tobacco Use dataset. Mortality (inddea) was modeled as a binary outcome. Two main exposures were examined: (1) smoking status (never, everyday, some-days, former) and (2) smoking status plus smoking duration, operationalized using age at smoking initiation (agesmk). Covariates selected a priori based on demographic and socioeconomic relevance included age, race, sex, health insurance status, income, and marital status.
-
-All models were fit using generalized linear models with a binomial distribution and logit link in R. A univariate model estimated the crude association between smoking status and mortality, followed by multivariable models adjusting for confounders. Model performance was compared and selected using AIC and residual deviance. Odds ratios and 95% confidence intervals were computed by exponentiating model coefficients. Missing data were handled using complete-case analysis to ensure comparability across models.
-
-## Results
-
-
-
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-# code hidden, output shown
-
-table_interpretation <- readRDS( "Results_Smoking.rds")
-
-table_interpretation <- data.frame(
-  Predictor = c(
-    "Everyday smoker (vs never)", 
-    "Some-days smoker (vs never)", 
-    "Former smoker (vs never)",
-    "Age (per year)",
-    "Race 2 (vs Race 1)",
-    "Race 3 (vs Race 1)",
-    "Race 4 (vs Race 1)",
-    "Race 5 (vs Race 1)",
-    "Female (vs Male)",
-    "Insured (vs Uninsured)",
-    "Income (per level increase)",
-    "Married (vs Separated/Not married)"
-  ),
-  Interpretation = c(
-    "119% higher mortality (OR=2.19)",
-    "78% higher mortality (OR=1.78)",
-    "37% higher mortality (OR=1.37)",
-    "9% increase in mortality per year (OR=1.09)",
-    "24% higher mortality (OR=1.24)",
-    "38% higher mortality (OR=1.38)",
-    "26% lower mortality (OR=0.74)",
-    "Not significant",
-    "43% lower mortality (OR=0.57)",
-    "17% higher mortality (OR=1.17)",
-    "5% lower mortality per income level (OR=0.95)",
-    "27% lower mortality (OR=0.73)"
-  )
-)
-
-#table_interpretation %>%
-  #kable(
-   # format = "html",
-    #caption = "Interpretation of Adjusted Odds Ratios for Mortality:Smoking Status",
-   # col.names = c("Predictor", "Interpretation"),
-   # escape = FALSE
- # ) %>%
-  #kable_styling(
-    #bootstrap_options = c("striped", "hover"),
-   # full_width = FALSE,
-    #position = "center"
- # )
-
-```
-
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-# code hidden, output shown
-
-table_model7 <- data.frame(
-  Predictor = c(
-    "Someday smoker (vs Everyday Smoker)",
-    "Former smoker (vs Everyday Smoker)",
-    "Age started smoking (per year)",
-    "Age (per year)",
-    "Race 2 (vs Race 1)",
-    "Race 3 (vs Race 1)",
-    "Race 4 (vs Race 1)",
-    "Race 5 (vs Race 1)",
-    "Female (vs Male)",
-    "Health insurance: Yes (vs No)",
-    "Income (per level)",
-    "Married (vs Seperated/Not married)"
-  ),
-  Interpretation = c(
-    "13.7% lower mortality (OR = 0.86)",
-    "38.8% lower mortality (OR = 0.61)",
-    "2.1% lower mortality per year started later (OR = 0.98)",
-    "9.4% higher mortality per year of age (OR = 1.09)",
-    "14.7% higher mortality (OR = 1.15)",
-    "27.9% higher mortality (OR = 1.28)",
-    "30.0% lower mortality (OR = 0.70)",
-    "Not significant (OR = 0.97)",
-    "35.7% lower mortality for females (OR = 0.64)",
-    "19.4% higher mortality (OR = 1.19)",
-    "5.9% lower mortality per income level (OR = 0.94)",
-    "22.4% lower mortality for married individuals (OR = 0.78)"
-  )
-)
-
-#table_model7 %>%
-  #kable(
-    #format = "html",
-    #caption = "Interpretation of Adjusted Odds Ratios: Smoking Status + Duration Model",
-    #col.names = c("Predictor", "Interpretation"),
-    #escape = FALSE
-  #) %>%
-  #kable_styling(
-    #bootstrap_options = c("striped", "hover", "condensed"),
-    #full_width = FALSE,
-    #position = "center"
-  #)
-```
-
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-# code hidden, output shown
-
-library(kableExtra)
-
-two_tables <- data.frame(
-Table2_SmokingStatusModel  = c(kable(table_interpretation, format="html")),
-Table3_SmokingStatusAndDurationModel = c(kable(table_model7, format="html"))
-)
-
-two_tables %>%
-kable("html", escape = FALSE) %>%
-kable_styling(full_width = TRUE) %>%
-column_spec(1, width = "50%") %>%
-column_spec(2, width = "50%")
-
-
-
-```
+![](files/reg_results_table.png)
 
 In the model adjusting for demographic and socioeconomic covariates, cigarette smoking status showed a strong graded association with mortality. Compared with never smokers, everyday smokers had more than double the odds of death (OR ≈ 2.19), some-day smokers had 78% higher odds (OR ≈ 1.78), and former smokers had 37% higher odds (OR ≈ 1.37), demonstrating a clear dose–response pattern(Table 2).
 
@@ -185,3 +77,19 @@ When age of smoking initaiation was incorporated into the model through age at s
 Across both models, age, sex, income, race, and marital status remained strong independent predictors. Age consistently showed the largest effect, with each additional year associated with \~9% higher mortality. Females had substantially lower mortality risk (\~36–43% lower), while higher income and being married were protective. Race differences persisted in both models, with some categories exhibiting higher or lower mortality relative to the reference group.
 
 Overall, smoking status was a robust predictor of mortality, and incorporating smoking duration through age of initiation refined these associations, suggesting that both current smoking behavior and smoking history meaningfully contribute to mortality risk.
+
+# References
+
+Arias, E., & Xu, J. Q. (2022). United States life tables, 2019 (National Vital Statistics Reports, Vol. 70, No. 19). National Center for Health Statistics. <https://doi.org/10.15620/cdc:113096>
+
+Kruger, D. J., & Nesse, R. M. (2006). An evolutionary life-history framework for understanding sex differences in human mortality rates. Evolutionary Psychology, 4(1), 66–85. <https://doi.org/10.1177/147470490600400114>
+
+Williams, D. R., & Mohammed, S. A. (2009). Discrimination and racial disparities in health: Evidence and needed research. Journal of Behavioral Medicine, 32(1), 20–47. <https://doi.org/10.1007/s10865-008-9185-0>
+
+Chetty, R., Stepner, M., Abraham, S., Lin, S., Scuderi, B., Turner, N., Bergeron, A., & Cutler, D. (2016). The association between income and life expectancy in the United States, 2001–2014. JAMA, 315(16), 1750–1766. <https://doi.org/10.1001/jama.2016.4226>
+
+Wilper, A. P., Woolhandler, S., Lasser, K. E., McCormick, D., Bor, D. H., & Himmelstein, D. U. (2009). Health insurance and mortality in US adults. American Journal of Public Health, 99(12), 2289–2295. <https://doi.org/10.2105/AJPH.2008.157685>
+
+Rendall, M. S., Weden, M. M., Favreault, M. M., & Waldron, H. (2011). The protective effect of marriage for survival: A review and update. Demography, 48(2), 481–506. <https://doi.org/10.1007/s13524-011-0032-5>
+
+U.S. Department of Health and Human Services. (2014). The health consequences of smoking—50 years of progress: A report of the Surgeon General. <https://www.ncbi.nlm.nih.gov/books/NBK179276/>
