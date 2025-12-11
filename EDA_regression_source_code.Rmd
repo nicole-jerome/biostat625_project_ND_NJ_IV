@@ -1,6 +1,8 @@
 ---
 title: "Untitled"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 date: "2025-12-05"
 ---
 
@@ -55,7 +57,7 @@ Benchmarking demonstrated that fread() provided substantial gains in computation
 ldata_fread <- fread("tu_new.csv")
 str(ldata_fread)
 write_parquet(ldata_fread, "tu_new.parquet")
-ds <- open_dataset("tu_new.parquet")
+ds <- open_dataset("files/tu_new.parquet")
 
 ```
 
@@ -276,6 +278,7 @@ final_table_wide <- final_table_wide %>%
 ```
 
 
+
 ```{r}
 library(knitr)
 library(kableExtra)
@@ -307,7 +310,8 @@ final_table_indent %>%
   kable_styling(
     bootstrap_options = c("striped", "hover", "condensed"),
     full_width = FALSE,
-    position = "center"
+    position = "center",
+   font_size = 12
   ) %>%
   collapse_rows(columns = 1, valign = "top")%>%
   footnote(
@@ -315,11 +319,47 @@ final_table_indent %>%
     general_title = "",
     footnote_as_chunk = TRUE
   )
-
-
-
 saveRDS(final_table_indent, "final_table_indent.rds")
 
+
+
+
+```
+
+
+```{r}
+library(dplyr)
+library(kableExtra)
+
+final_table_indent_pdf <- final_table_wide %>%
+  mutate(
+    Level = ifelse(is.na(Level), "NA",
+                   paste0("\\hspace{1em}", Level)),
+    Male = ifelse(is.na(Male), "", Male),
+    Female = ifelse(is.na(Female), "", Female)
+  )
+
+final_table_indent_pdf %>%
+  arrange(Variable, Level) %>%
+  kable(
+    format = "latex",
+    booktabs = TRUE,
+    longtable = TRUE,
+    caption = paste0(
+      "Table 1. Descriptive Statistics Stratified by Sex\n",
+      "Male (N = ", format(N_male, big.mark = ","), 
+      ") & Female (N = ", format(N_female, big.mark=","), ")"
+    ),
+    col.names = c("Variable", "Level", "Male", "Female"),
+    escape = FALSE
+  ) %>%
+  kable_styling(
+    latex_options = c("striped", "hold_position"),
+    full_width = FALSE
+  ) %>%
+  collapse_rows(columns = 1, latex_hline = "major") 
+saveRDS(final_table_indent_pdf, "final_table_indent_pdf.rds")
+  
 
 ```
 
@@ -517,14 +557,14 @@ table_interpretation <- data.frame(
     "Some-days smoker (vs never)", 
     "Former smoker (vs never)",
     "Age (per year)",
-    "Race 2 (vs Race 1)",
-    "Race 3 (vs Race 1)",
-    "Race 4 (vs Race 1)",
-    "Race 5 (vs Race 1)",
+    "Race:Black (vs White)",
+    "Race:American Indian/Alaskan Native (vs White)",
+    "Race:Asian/Pacific Islander(vs White)",
+    "Race: Other (vs White)",
     "Female (vs Male)",
     "Insured (vs Uninsured)",
     "Income (per level increase)",
-    "Married (vs Not married)"
+    "Married (vs Separated/Not married)"
   ),
   Interpretation = c(
     "119% higher mortality (OR=2.19)",
@@ -546,17 +586,14 @@ table_interpretation %>%
   kable(
     format = "html",
     caption = "Interpretation of Adjusted Odds Ratios for Mortality:Smoking Status",
-    col.names = c("Predictor", "Interpretation"),
-    escape = FALSE
+   col.names = c("Predictor", "Interpretation"),
+   escape = FALSE
   ) %>%
   kable_styling(
     bootstrap_options = c("striped", "hover"),
     full_width = FALSE,
     position = "center"
   )
-
-saveRDS(results_all, "Results_Smoking.rds")
-
 
 ```
 
@@ -565,14 +602,14 @@ library(kableExtra)
 
 table_model7 <- data.frame(
   Predictor = c(
-    "Someday smoker (vs Everyday)",
-    "Former smoker (vs Everyday)",
+    "Someday smoker (vs Everyday Smoker)",
+    "Former smoker (vs Everyday Smoker)",
     "Age started smoking (per year)",
     "Age (per year)",
-    "Race 2 (vs Race 1)",
-    "Race 3 (vs Race 1)",
-    "Race 4 (vs Race 1)",
-    "Race 5 (vs Race 1)",
+    "Race:Black (vs White)",
+    "Race:American Indian/Alaskan Native (vs White)",
+    "Race:Asian/Pacific Islander(vs White)",
+    "Race: Other (vs White)",
     "Female (vs Male)",
     "Health insurance: Yes (vs No)",
     "Income (per level)",
@@ -606,73 +643,48 @@ table_model7 %>%
     full_width = FALSE,
     position = "center"
   )
-saveRDS(results_all, "Results_Smoking_Duration.rds")
+
+
+
 ```
-
-
 ```{r}
-### facted Forest plot
+library(kableExtra)
 
-library(broom)
-library(dplyr)
+two_tables <- data.frame(
+Table2_SmokingStatusModel  = c(kable(table_interpretation, format="html")),
+Table3_SmokingStatusAndDurationModel = c(kable(table_model7, format="html"))
+)
 
-tidy_or <- function(model, model_name){
-  tidy(model, conf.int = TRUE, exponentiate = TRUE, conf.method = "wald") %>%
-    filter(term != "(Intercept)") %>%
-    mutate(
-      Model = model_name,
-      OR = estimate,
-      lower = conf.low,
-      upper = conf.high
-    ) %>%
-    select(Model, term, OR, lower, upper)
-}
+two_tables %>%
+kable("html", escape = FALSE) %>%
+kable_styling(full_width = TRUE) %>%
+column_spec(1, width = "50%") %>%
+column_spec(2, width = "50%")
 
-tbl_uni  <- tidy_or(model_uni1,  "Univariate")
-tbl_full <- tidy_or(model_full, "Multivariable")
-tbl_dur  <- tidy_or(model7,     "Duration Model")
 
-forest_df <- bind_rows(tbl_uni, tbl_full, tbl_dur)
-forest_df <- forest_df %>%
-  mutate(term = recode(term,
-    "factor(smokstat)2" = "Everyday smoker",
-    "factor(smokstat)3" = "Some-days smoker",
-    "factor(smokstat)4" = "Former smoker",
-    "age" = "Age (years)",
-    "agesmk" = "Age started smoking",
-    "factor(race)2" = "Race: Category 2",
-    "factor(race)3" = "Race: Category 3",
-    "factor(race)4" = "Race: Category 4",
-    "factor(race)5" = "Race: Category 5",
-    "factor(sex)2" = "Female (vs Male)",
-    "factor(histatus)1" = "Insured (vs Uninsured)",
-    "adjinc" = "Income",
-    "factor(ms_recode)1" = "Married (vs Not married)"
-  ))
-library(ggplot2)
+two_tables <- data.frame(
+  Table2_SmokingStatusModel = paste0(
+    "<div style='zoom:1.5;'>",
+    kable(table_interpretation, "html"),
+    "</div>"
+  ),
+  Table3_SmokingStatusAndDurationModel = paste0(
+    "<div style='zoom:1.5;'>",
+    kable(table_model7, "html"),
+    "</div>"
+  ),
+  check.names = FALSE
+)
 
-ggplot(forest_df, aes(x = term, y = OR, ymin = lower, ymax = upper)) +
-  geom_pointrange(color = "#2c7fb8", size = 0.7) +
-  geom_hline(yintercept = 1, linetype = 2, color = "darkgray") +
-  coord_flip() +
-  scale_y_log10(
-    breaks = c(0.5, 0.75, 1, 1.5, 2, 3),
-    labels = c("0.5", "0.75", "1.0", "1.5", "2.0", "3.0")
-  ) +
-  facet_wrap(~ Model, scales = "free_y") +
-  labs(
-    title = "Adjusted Odds Ratios for Mortality Across Smoking Models",
-    subtitle = "Faceted Forest Plot: Univariate, Multivariable, and Duration Models",
-    x = "",
-    y = "Odds Ratio (log scale)"
-  ) +
-  theme_minimal(base_size = 13) +
-  theme(
-    strip.text = element_text(face = "bold", size = 13),
-    panel.spacing = unit(1.5, "lines"),
-    axis.text.y = element_text(size = 11)
-  )
+two_tables %>%
+  kable("html", escape = FALSE) %>%
+  kable_styling(full_width = TRUE) %>%
+  column_spec(1, width = "50%") %>%
+  column_spec(2, width = "50%")
 
 
 ```
+
+
+
 
