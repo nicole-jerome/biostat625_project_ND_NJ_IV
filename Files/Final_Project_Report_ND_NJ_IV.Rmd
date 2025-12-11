@@ -11,9 +11,18 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Abstract
 
+
 # Introduction
 
 # Methods
+### Data Acquisition and Description
+The National Longitudinal Mortality Study (NLMS) Public Use Microdata Sample (PUMS) Tobacco use cohort contains 493,282 participants who were tracked over a five year period. Many demographic and socioeconomic factors, in addition to smoking behavior characteristics were collected for each individual. Data was acquired from _____ and was uploaded to GitHub. 
+
+### Exploratory Data Analysis (EDA) and Logistic Regression
+
+### Machine Learning Predictor
+#### 1. Data Preprocessing
+The outcome variable is a binary predictor of death (inddea), however, many predictors needed to be recoded 
 
 # Results
 

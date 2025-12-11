@@ -3,6 +3,9 @@ title: "BIOSTAT 625 Report"
 author: "Naman Dhariwal"
 date: "2025-12-11"
 output:
+  html_document:
+    toc: false
+    df_print: paged
   pdf_document:
     toc: false
     number_sections: false
@@ -23,10 +26,10 @@ This project predicts 5-year all-cause mortality among U.S. smokers using a Ligh
 
 The outcome variable is a binary indicator of death within 5 years (inddea). Predictors include:
 
- - Demographics: age, sex, race/ethnicity, region
- - Socioeconomic: income-to-poverty ratio (povpct), education, employment, occupation, citizenship
- - Household/Social: marital status, living arrangement, veteran status
- - Health-related: health insurance coverage, smoking status (smokstat), smokeless tobacco use
+ - Demographics: age (age), sex (sex), race/ethnicity (race), country of birth (pob), region of residence (stater)
+ - Socioeconomic: income-to-poverty ratio (povpct), education (educ), employment status (esr), occupation (majocc), citizenship (citizen)
+ - Household/Social: marital status (ms), number of people living in household (hhnum), veteran status (vt)
+ - Health-related: health insurance coverage status (histatus), smoking status (smokstat), smoked more than 100 cigarettes in lifetime (smok100), smokeless tobacco use (everuse)
 
 2.1 Imbalanced outcome
 

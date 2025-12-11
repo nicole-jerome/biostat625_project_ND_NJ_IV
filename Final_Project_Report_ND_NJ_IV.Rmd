@@ -1,0 +1,114 @@
+---
+title: "Modeling of Smoking-Related Mortality: A Big-Data Analysis of the NLMS (National Longitudinal Mortality Study) Tobacco-Use Cohort in the U.S."
+author: "Naman Dariwhal, Nicole Jerome, Indhira Vadivel"
+date: "12-12-2025"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(dplyr)
+```
+
+# Abstract
+
+
+# Introduction
+
+# Methods
+### Data Acquisition and Description
+The National Longitudinal Mortality Study (NLMS) Public Use Microdata Sample (PUMS) Tobacco use cohort (dataset file name: tu) contains 493,282 participants who were tracked over a five year period. Forty-three different variables including demographic information, socioeconomic factors, and smoking behaviors were collected for each individual. Importantly, the death indicator column (inddea) reported whether an individual was alive or deceased at the end of the follow up period. Data was acquired from _____ and was uploaded to GitHub for our analyses. 
+
+### Exploratory Data Analysis (EDA) and Logistic Regression
+
+### Machine Learning Predictor
+#### 1. Data Preprocessing
+Within tu, the outcome variable (death indicator, inddea) was already coded as a binary predictor of death, however, each predictor needed to be assessed for its usefulness in the model. In total, 17 out of 43 variables were able to be used within the model. Variables that were redundant (ex: occupation code and industry code), irrelevant (ex: record number, presence of social security number), strongly subjective (ex: health status), confounded with the death indicator (ex: cause of death), contained a high percentage of missing data, or that were present but did not contain data (ex: standard metropolitan statistical area (smsa) status)(the tu file is a subset of a larger study and thus some identification data was not included), were eliminated. As such, the predictors included:
+
+**Demographics:** age (age), sex (sex), race/ethnicity (race), country of birth (pob), region of residence (stater)  
+**Socioeconomic:** income as percent of poverty ratio (povpct), education (educ), employment status (esr), occupation (majocc), citizenship (citizen)  
+**Household/Social:** marital status (ms), number of people living in household (hhnum), veteran status (vt)  
+**Health-Related:** health insurance coverage status (histatus), smoking status (smokstat), smoked more than 100 cigarettes in lifetime (smok100), smokeless tobacco use (everuse) 
+
+Categorical predictors (ex: marital status, employment, region, smoking status) were converted into machine-readable form using one-hot encoding. Binary variables remained as 0/1, and continuous variables (ex: age, povpct) were not altered.
+
+#### 2. Handling Class Imbalance
+In tu, deaths account for only ~4% of observations (Alive	(0): 378,501; Deceased (1):	16,124). Therefore, a naive classifier model would achieve ~96% accuracy by predicting survival for everyone. If unaltered, the accuracy of the model would be misleading. This highlights the importance of additional metrics such as recall, balanced accuracy, ROC-AUC, and PR-AUC. To correct for the imbalance, LightGBM’s scale_pos_weight parameter was set to: scale_pos_weight = (# survivors / # deaths). This setting increases the penalty for misclassifying deaths and helps the model focus on the minority class without oversampling or synthetic data generation. A stratified 80/20 training/testing split ensured proportional representation of deaths in both data sets.
+
+#### 3. Machine Learning Modeling Methods
+The Light Gradient Boosting Machine (LightGBM) [1] framework was chosen as a machine learning model due to its: efficiency on very large tabular datasets, ability to model nonlinear and interaction effects, native handling of class imbalance, and interpretability via SHapley Additive exPlanations (SHAP). A LightGBM classifier was trained on the one-hot encoded feature matrix. Model development included:
+
+**Objective:** binary logistic loss  
+**Evaluation metrics:** accuracy, balanced accuracy, precision, recall, F1, ROC-AUC, PR-AUC  
+**Cross-validation:** 5-fold CV to estimate generalization performance  
+**Hyperparameters:** tuned learning rate, max depth, number of leaves, number of trees  
+**Imbalance correction:** scale_pos_weight, as described above
+
+# Results
+
+### Exploratory Data Analysis (EDA) and Logistic Regression
+
+### Machine Learning Predictor
+#### Validation Results
+Five-fold cross-validation of our LightGBM model performed well, with metrics being outlined in Table 1.
+```{r, echo = FALSE}
+cv_results <- tribble(
+~Metric, ~Mean, ~SD,
+"Accuracy", 0.8309, 0.0012,
+"Balanced Accuracy", 0.8361, 0.0012,
+"Precision", 0.1745, 0.0012,
+"Recall", 0.8418, 0.0015,
+"F1-score", 0.2891, 0.0017,
+"ROC-AUC", 0.9087, 0.0022,
+"PR-AUC", 0.3497, 0.0099
+)
+kable(cv_results, digits=4,
+caption="TABLE 1: Five-fold cross-validation results for LightGBM.")
+```
+
+#### Testing Results
+When classifying the held-out test set, the model's accuracy of 0.8265 and balanced accuracy of 0.8341 indicates a strong predictive performance. The closeness of these values indicates that the class imbalance is being handled well, mitigating over fitting.
+
+Our model achieved a recall of 0.8425, meaning that it correctly identified approximately 84% of all individuals who actually died. In public health and clinical risk prediction settings, this is a critical property since false negatives (missed deaths) are more harmful than false positives. High recall indicates that the model is effective at capturing true high-risk cases, even when they form a very small portion of the population. This sensitivity is especially valuable for early intervention, population screening, and prioritizing individuals for health outreach or monitoring.
+
+The model's precision was relatively low (0.1708), which is expected in datasets where the positive class is extremely rare. In this case, low precision does not indicate model failure; instead, it reflects the inherent difficulty of predicting a rare outcome.
+
+```{r, echo=FALSE}
+test_results <- tribble(
+~Metric, ~Value,
+"Accuracy", 0.8265,
+"Balanced Accuracy", 0.8341,
+"Precision", 0.1708,
+"Recall", 0.8425,
+"F1-score", 0.2841,
+"ROC-AUC", 0.9070,
+"PR-AUC", 0.3563
+)
+kable(test_results, digits=4,
+caption="TABLE 2: Held-out test-set performance for LightGBM.")
+```
+
+The model’s ROC-AUC of 0.907 indicates excellent ability to distinguish between individuals who died and those who survived across all possible classification thresholds. Additionally, the PR-AUC of 0.356 is strong given the 4% event rate; random guessing would achieve a PR-AUC near 0.04. This demonstrates that the model is identifying high-risk individuals far better than chance, despite class imbalance.
+
+**FIGURE 1:**  
+
+```{r ROC_curve, echo=FALSE, out.width="50%"}
+knitr::include_graphics("figures/roc_lightgbm.png")
+```
+
+#### Key Feature Effects
+To better understand how the model assigns risk, SHAP dependence analysis was used to examine the effect of the most influential predictors. Age showed a strong, monotonic relationship with mortality risk: SHAP values increased steadily with age, indicating that older individuals contribute substantially more to predicted mortality. This effect was consistent across all income levels. Other influential features included citizenship category, age, sex, smoking, and income-to-poverty ratio, reflecting the combined biological and socioeconomic determinants of mortality. Additional information on these features can be found in ________(GitHub path)_________.
+
+**FIGURE 2:**
+
+```{r shap-age, echo=FALSE, out.width="50%"}
+knitr::include_graphics("figures/shap_age.png")
+```
+
+# Conclusion
+
+Our LightGBM classifier predicted 5-year mortality among smokers in the NLMS Tobacco Use Cohort, a large and highly imbalanced dataset. After one-hot encoding categorical variables and applying class weighting to address the rarity of death events, the model demonstrated strong performance on both cross-validation and held-out test data. High recall and AUC values indicate that the model effectively identifies individuals at elevated mortality risk, even when the positive class represents only ~4% of the population. Although precision is low, as expected in rare-event prediction, the model’s ability to capture the majority of true deaths makes it suitable for screening and population risk stratification. Overall, LightGBM provides a robust, efficient, and interpretable framework for mortality prediction in large epidemiologic datasets, offering practical utility for public health research and targeted intervention strategies.
+
+# References
+[1] Ke, G., Meng, Q., Finley, T., Wang, T., Chen, W., Ma, W., ... & Liu, T. Y. (2017). Lightgbm: A highly efficient gradient boosting decision tree. Advances in neural information processing systems, 30.
