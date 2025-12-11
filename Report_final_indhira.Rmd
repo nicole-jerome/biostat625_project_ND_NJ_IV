@@ -7,7 +7,6 @@ output:
   html_document: default
 ---
 
-
 # Methods
 
 ## Descriptive Analysis
@@ -40,22 +39,13 @@ $$
 
 #### Model 2: Smoking Status+Snoking Duration
 
+
+$$ \text{logit}\big[P(\text{Death}_i = 1)\big] = \gamma_0 + \gamma_1\,\text{Smokestat}_i + \gamma_2\,\text{AgeStartedSmoking}_i + \gamma_3\,\text{Age}_i + \gamma_4\,\text{Race}_i  $$
 $$
-\text{logit}\big[P(\text{Death}_i = 1)\big] 
-= \gamma_0
-+ \gamma_1\,\text{Smokestat}_i
-+ \gamma_2\,\text{AgeStartedSmoking}_i
-+ \gamma_3\,\text{Age}_i
-+ \gamma_4\,\text{Race}_i
-+ \gamma_5\,\text{Sex}_i
-+ \gamma_6\,\text{Insurance}_i
-+ \gamma_7\,\text{Income}_i
-+ \gamma_8\,\text{MaritalStatus}_i .
+         + \gamma_5\,\text{Sex}_i + \gamma_6\,\text{Insurance}_i + \gamma_7\,\text{Income}_i + \gamma_8\,\text{MaritalStatus}_i
 $$
 
 All models were fit using generalized linear models with a binomial distribution and logit link in R. A univariate model estimated the crude association between smoking status and mortality, followed by multivariable models adjusting for confounders. Model performance was compared and selected using AIC and residual deviance. Odds ratios and 95% confidence intervals were computed by exponentiating model coefficients. Missing data were handled using complete-case analysis to ensure comparability across models.
-
-
 
 # Results
 
@@ -67,9 +57,7 @@ The analytic sample included 493,282 participants, with 230,967 males and 262,31
 
 ## Logistic Regression
 
-
 ![](files/reg_results_table.png)
-
 
 In the model adjusting for demographic and socioeconomic covariates, cigarette smoking status showed a strong graded association with mortality. Compared with never smokers, everyday smokers had more than double the odds of death (OR = 2.19), some-day smokers had 78% higher odds (OR = 1.78), and former smokers had 37% higher odds (OR = 1.37), demonstrating a clear dose–response pattern (Table 2).
 
