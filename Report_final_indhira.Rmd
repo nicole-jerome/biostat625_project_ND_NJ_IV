@@ -115,7 +115,7 @@ table_interpretation <- data.frame(
 
 table_model7 <- data.frame(
   Predictor = c(
-    "Someday smoker (vs Everyday Smoker)",
+    "Some-days smoker (vs Everyday Smoker)",
     "Former smoker (vs Everyday Smoker)",
     "Age started smoking (per year)",
     "Age (per year)",
