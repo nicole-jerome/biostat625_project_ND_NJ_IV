@@ -25,7 +25,7 @@ library(dplyr)
 
 # Abstract
 
-Smoking has negative impacts on individuals and society. It is associated with increased disease burden, reduced quality of life and lifespan, and resulting negative health outcomes place unnecessary economic burden on healthcare systems. As such, public health policy and interventions have the potential to impact smoking habits and outcomes. However, strong data that identifies risk factors for smoking-related mortality and prediction tools that identify individuals with the highest risk would aid in informing policy decisions and focus intervention efforts. Recent advances in mathematical modeling and machine learning present new opportunities to leverage big data in order to support data-driven public health decision-making. In this study, we leverage the National Longitudinal Mortality Study (NLMS) Public Use Microdata Sample (PUMS) Tobacco Use Cohort to build interpretable models of mortality risk by accounting for socioeconomic and lifestyle factors alongside tobacco use characteristics. We found that
+Smoking has negative impacts on individuals and society. It is associated with increased disease burden, reduced quality of life and lifespan, and resulting negative health outcomes place unnecessary economic burden on healthcare systems. As such, public health policy and interventions have the potential to impact smoking habits and outcomes. However, strong data that identifies risk factors for smoking-related mortality and prediction tools that identify individuals with the highest risk would aid in informing policy decisions and focus intervention efforts. Recent advances in mathematical modeling and machine learning present new opportunities to leverage big data in order to support data-driven public health decision-making. In this study, we leverage the National Longitudinal Mortality Study (NLMS) Public Use Microdata Sample (PUMS) Tobacco Use Cohort to build interpretable models of mortality risk by accounting for socioeconomic and lifestyle factors alongside tobacco use characteristics. Through logistic regression, we found that smoking status and smoking duration were robust predictors of mortality. Additionally, our LightGBM machine learning model robustly identified individuals with high mortality risk, while overcoming a strong class imbalance within the dataset.
 
 # Introduction
 
@@ -45,7 +45,7 @@ The National Longitudinal Mortality Study (NLMS) Public Use Microdata Sample (PU
 
 ### 1. Workflow and Data Processing
 
-A big-data workflow centered on Apache Arrow enabled efficient, memory-safe processing of the large dataset. This allowed fast columnar input/output, lazy evaluation, and on-disk querying without importing the entire file into memory—- an approach that saved memory and computing costs over base R techniques. The raw .csv file (tu) was converted to a .parquet file, and was loaded as an Arrow dataset. Arrow and dplyr were used to subset the necessary variables for recoding and performing grouped operations. Smokeless tobacco use variables (curruse, everuse) were recoded into binary indicators and marital status was collapsed into two categories (married, not married/separated). Labeled factor variables were also created for readability.
+A big-data workflow centered on Apache Arrow enabled efficient, memory-safe processing of the large dataset. This allowed fast columnar input/output, lazy evaluation, and on-disk querying without importing the entire file into memory— an approach that saved memory and computing costs over base R techniques. The raw .csv file (tu) was converted to a .parquet file, and was loaded as an Arrow dataset. Arrow and dplyr were used to subset the necessary variables for recoding and performing grouped operations. Smokeless tobacco use variables (curruse, everuse) were recoded into binary indicators and marital status was collapsed into two categories (married, not married/separated). Labeled factor variables were also created for readability.
 
 ### 2. Exploratory Data Analysis
 
@@ -57,7 +57,7 @@ Covariates were selected a priori based on established epidemiological evidence 
 
 ### 4. Logistic Regression Modeling
 
-The association between cigarette smoking behavior and mortality was modeled using logistic regression. Mortality (inddea) was modeled as a binary outcome. Two main exposures were examined: (1) smoking status (never, everyday, some-days, former) and (2) smoking status plus smoking duration, operationalized using age at smoking initiation (agesmk). Selected covariates are described above.
+The association between cigarette smoking behavior and mortality was modeled using logistic regression. Mortality (inddea) was modeled as a binary outcome. Two main exposures were examined: (1) smoking status (never, everyday, some-days, former) and (2) smoking status plus smoking duration, operationalized by using age at smoking initiation (agesmk). Selected covariates are described above.
 
 **MODEL 1:** Smoking Status 
 $$
@@ -126,7 +126,7 @@ Across both models, age, sex, income, race, and marital status remained strong i
 
 Overall, smoking status was a robust predictor of mortality, and incorporating smoking duration through age at initiation refined these associations. These findings suggest that both current smoking behavior and lifetime smoking history contribute meaningfully to mortality risk.
 
-**TABLE 2:**
+**TABLE 2:** Model 1 (Left), Model 2 (Right)
 
 ```{r, echo=FALSE, out.width="90%"}
 knitr::include_graphics("files/reg_results_table.png")
@@ -162,14 +162,17 @@ To better understand how the model assigns risk, SHAP dependence analysis was us
 
 # Conclusion
 
-By leveraging the NLMS Tobacco Use Cohort, we were able to accurately model and predict mortality risk while accounting for demographic information, socioeconomic factors, and tobacco-use behaviors. Our logistic regression analysis provides an interpretable framework for identifying and understanding which covariates are associated with mortality. Adjusted odds ratios unsurprisingly highlight that the a priori selected covariates do contribute to mortality risk, however, we also show that smoking behaviors significantly impact the risk of mortality.
+By leveraging the NLMS Tobacco Use Cohort, we were able to accurately model and predict mortality risk due to smoking-related behaviors and duration, while accounting for demographic and socioeconomic factors. Our logistic regression analysis, through adjusted odds ratios, showed that both smoking status and smoking duration had significant impact on the risk of mortality, even after covariates were accounted for. This analysis provides an interpretable framework for identifying how smoking behaviors effect mortality risk and the degree to which the selected covariates also impact mortality.  
 
 Further, our LightGBM classifier demonstrated strong performance (on cross-validation and test-set data) on predicting 5-year mortality when taking into account the 17 chosen predictors. High recall and AUC values indicate that the model effectively identifies individuals at elevated mortality risk, even when the positive (deceased) class represents only \~4% of the population. Although precision is low, as expected in rare-event prediction, the model’s ability to capture the majority of true deaths makes it suitable for screening and population risk stratification. Overall, LightGBM provides a robust, efficient, and interpretable framework for mortality prediction in large epidemiologic datasets.
 
-Taken together, our methods and the resulting analyses offer practical utility for public health research and designing targeted intervention strategies, with the goals of reducing smoking-related mortality, lessening population-wide disease burden, and improving overall public health.
+Taken together, our methods and the resulting analyses offer practical utility for public health research and designing targeted intervention strategies, with the goals of reducing smoking-related mortality, lessening population-wide disease burden, and improving overall public health.  
 
-### Contributions
-
+# Contributions
+**Naman Dariwhal:** One-hot encoding and running LightGBM model, model validation, and data visualization. 
+**Nicole Jerome:** Data cleaning, feature engineering for LightGBM model, compiling report.
+**Indhira Vadivel:** Data acquisition and cleaning, EDA, logistic regressions.
+**All:** Conceptualization, analysis and interpretation. We are in agreement that all members reasonably contributed according to their strengths. 
 
 # References
 
