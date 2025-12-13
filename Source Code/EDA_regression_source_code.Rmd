@@ -56,8 +56,11 @@ Benchmarking demonstrated that fread() provided substantial gains in computation
 
 ldata_fread <- fread("tu_new.csv")
 str(ldata_fread)
+
+###We used Apache Arrow and the Parquet format because the NLMS Tobacco Use dataset is large (~493,000 observations with many variables), and base R data handling becomes inefficient and memory-intensive at this scale.
+
 write_parquet(ldata_fread, "tu_new.parquet")
-ds <- open_dataset("files/tu_new.parquet")
+ds <- open_dataset("tu_new.parquet")
 
 ```
 
@@ -77,9 +80,7 @@ Computations push down to C++ backend
 No full dataset in memory
 
 ```{r}
-
-library(arrow)
-library(dplyr)
+### Descriptive Analysis
 
 
 df <- ds %>%
@@ -280,6 +281,9 @@ final_table_wide <- final_table_wide %>%
 
 
 ```{r}
+
+### making an elegant table
+
 library(knitr)
 library(kableExtra)
 library(dplyr)
@@ -327,43 +331,8 @@ saveRDS(final_table_indent, "final_table_indent.rds")
 ```
 
 
-```{r}
-library(dplyr)
-library(kableExtra)
 
-final_table_indent_pdf <- final_table_wide %>%
-  mutate(
-    Level = ifelse(is.na(Level), "NA",
-                   paste0("\\hspace{1em}", Level)),
-    Male = ifelse(is.na(Male), "", Male),
-    Female = ifelse(is.na(Female), "", Female)
-  )
-
-final_table_indent_pdf %>%
-  arrange(Variable, Level) %>%
-  kable(
-    format = "latex",
-    booktabs = TRUE,
-    longtable = TRUE,
-    caption = paste0(
-      "Table 1. Descriptive Statistics Stratified by Sex\n",
-      "Male (N = ", format(N_male, big.mark = ","), 
-      ") & Female (N = ", format(N_female, big.mark=","), ")"
-    ),
-    col.names = c("Variable", "Level", "Male", "Female"),
-    escape = FALSE
-  ) %>%
-  kable_styling(
-    latex_options = c("striped", "hold_position"),
-    full_width = FALSE
-  ) %>%
-  collapse_rows(columns = 1, latex_hline = "major") 
-saveRDS(final_table_indent_pdf, "final_table_indent_pdf.rds")
-  
-
-```
-
-
+# Logistic Regression Analysis
 
 ```{r}
 df <- ds %>%
@@ -470,6 +439,9 @@ BIC(model_uni1,model_full, model7)
 ```
 
 ```{r}
+
+##Results
+
 library(broom)
 library(dplyr)
 
@@ -549,6 +521,9 @@ saveRDS(results_all, "Regression_Results.rds")
 
 
 ```{r}
+### Interpretation Tables
+
+
 library(kableExtra)
 
 table_interpretation <- data.frame(

@@ -41,8 +41,7 @@ $$
 
 $$
 \text{logit}\big[P(\text{Death}_i = 1)\big] = \gamma_0 + \gamma_1\,\text{Smokestat}_i + \gamma_2\,\text{AgeStartedSmoking}_i + \gamma_3\,\text{Age}_i + \gamma_4\,\text{Race}_i
-$$
-$$         
+$$ $$         
          + \gamma_5\,\text{Sex}_i + \gamma_6\,\text{Insurance}_i + \gamma_7\,\text{Income}_i + \gamma_8\,\text{MaritalStatus}_i
 $$
 
@@ -54,11 +53,11 @@ All models were fit using generalized linear models with a binomial distribution
 
 The analytic sample included 493,282 participants, with 230,967 males and 262,315 females. The sex-stratified descriptive statistics showed broadly similar age distributions between groups, while race, income, and health insurance patterns exhibited modest variation. Marital status differed by sex, with a higher proportion of males classified as married and females more frequently not married or separated. Tobacco-related behaviors demonstrated clear sex patterns: males reported higher rates of current and ever use of smokeless tobacco and were more likely to have smoked at least 100 cigarettes. The mean age of smoking initiation was slightly lower among males. Mortality proportions also varied slightly by sex. Overall, Table 1 summarizes these demographic, socioeconomic, and tobacco-use differences, providing a foundational characterization of the NLMS tobacco cohort prior to inferential analysis.
 
-| ![](files/summ1.png){width="50%"} \| ![](files/summ2.png){width="50%"} \|
+| ![](summ1.png){width="50%"}  ![](summ2.png){width="50%"} 
 
 ## Logistic Regression
 
-![](files/reg_results_table.png)
+![](reg_results_table.png)
 
 In the model adjusting for demographic and socioeconomic covariates, cigarette smoking status showed a strong graded association with mortality. Compared with never smokers, everyday smokers had more than double the odds of death (OR = 2.19), some-day smokers had 78% higher odds (OR = 1.78), and former smokers had 37% higher odds (OR = 1.37), demonstrating a clear dose–response pattern (Table 2).
 
